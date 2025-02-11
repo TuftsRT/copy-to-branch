@@ -63,15 +63,15 @@ runs:
       run: ${{ github.action_path }}/stage-files.sh
       shell: bash
       env:
+        INPUTS_COPY: ${{ inputs.copy }}
         REPO_PATH: repo
         STAGING: staging
-        INPUTS_COPY: ${{ inputs.copy }}
     - id: replace-strings
       run: ${{ github.action_path }}/replace-strings.sh
       shell: bash
       env:
-        STAGING: staging
         INPUTS_REPLACE: ${{ inputs.replace }}
+        STAGING: staging
     - id: configure-git
       run: ${{ github.action_path }}/configure-git.sh
       shell: bash
@@ -82,8 +82,8 @@ runs:
       run: ${{ github.action_path }}/push-changes.sh
       shell: bash
       env:
-        REPO_PATH: repo
         BRANCH: ${{ inputs.destination-branch }}
         CLEAR: ${{ inputs.clear-destination }}
-        STAGING: staging
         MESSAGE: ${{ inputs.commit-message }}
+        REPO_PATH: repo
+        STAGING: staging
