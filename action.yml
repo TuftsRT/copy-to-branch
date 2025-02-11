@@ -40,6 +40,13 @@ inputs:
       Defaults to the SHA of the triggering commit.
     required: false
     default: ${{ github.sha }}
+  use-bot:
+    description: |
+      Whether to use the github-actions[bot] account to commit and push changes.
+      Must be set to "true" for the bot to be used. Other values ignored.
+      (Author of the last commit on the source branch used by default.)
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -65,6 +72,12 @@ runs:
       env:
         STAGING: staging
         INPUTS_REPLACE: ${{ inputs.replace }}
+    - id: configure-git
+      run: ${{ github.action_path }}/configure-git.sh
+      shell: bash
+      env:
+        REPO_PATH: repo
+        USE_BOT: ${{ inputs.use-bot }}
     - id: push-changes
       run: ${{ github.action_path }}/push-changes.sh
       shell: bash

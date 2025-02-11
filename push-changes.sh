@@ -2,8 +2,6 @@
 home=$(pwd)
 cd $REPO
 git reset --hard
-git config user.name "$(git show -s --format='%an' HEAD)"
-git config user.email "$(git show -s --format='%ae' HEAD)"
 git pull --all
 git checkout $BRANCH -- || git switch --orphan $BRANCH
 if [ "$CLEAR" == "true" ]; then git rm -rfq *; fi
