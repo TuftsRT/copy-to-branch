@@ -1,6 +1,6 @@
 #!/bin/bash
 home=$(pwd)
-cd $REPO
+cd $REPO_PATH
 git reset --hard
 git pull --all
 git checkout $BRANCH -- || git switch --orphan $BRANCH
