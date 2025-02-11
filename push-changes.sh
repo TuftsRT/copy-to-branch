@@ -9,9 +9,9 @@ then
     git rm -rfq -- *
 else
     while IFS="" read -r pattern
-        do
-            rm -rf -- "$pattern"
-        done <<< "$(grep '\S' <<< "$RM_LIST")"
+    do
+        rm -rf -- "$pattern"
+    done <<< "$(grep '\S' <<< "$RM_LIST")"
 fi
 rsync -a --exclude=".git" ../"$STAGING"/ ./
 git add -A
