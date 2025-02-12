@@ -66,7 +66,7 @@ jobs:
       - id: date
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - uses: tuftsrt/branch-manager@v1
+      - uses: tuftsrt/copy-to-branch@v1
         with:
           destination-branch: binder
           clear-destination: "true"
