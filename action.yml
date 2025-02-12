@@ -1,4 +1,4 @@
-name: Branch Manager
+name: copy-to-branch
 author: Tufts University
 description: automatically copy content between repository branches
 branding:
