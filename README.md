@@ -1,4 +1,4 @@
-# Branch Manager
+# branch-manager
 
 GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. Intended for workflows that require synchronization of content between branches and allows for the modification of select content within files.
 
