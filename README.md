@@ -84,15 +84,15 @@ The sample workflow above creates a new branch that allows the interactive execu
 
 1. any preexisting content on the `binder` branch is cleared
 2. `environment.yml` from the `main` branch is copied into a new directory `.binder` on the `binder` branch
-3. all `ipynb` files from the root `main` branch are copied into the root of the `binder` branch
-4. `sample.csv` from the `data` directory on the `main` branch is copied to the root of the `binder` branch and renamed to `data.csv`
-5. everything from `docs` on the `main` branch is copied into a new directory `docs` on the `binder` branch (essentially the same as recursively copying the whole `docs` directory)
+3. all `ipynb` files from the root of the `main` branch are copied into the root of the `binder` branch
+4. `sample.csv` from the `data` directory on `main` is copied to the root of `binder` and renamed to `data.csv`
+5. everything from `docs` on the `main` branch is copied into a new directory `docs` on the `binder` branch
 6. references to `"data/sample.csv"` in the `ipynb` files on the `binder` branch are replaced with `"data.csv"`
 7. placeholder `"GH_ACTIONS_DATE"` in all files on the `binder` branch is replaced with the current date
 
 ## Advanced Usage
 
-Copy commands are executed via `rsync` using archive mode (`-a`). Note that the behavior of `rsync`differs from that of`cp` and these differences are exaggerated when using archive mode. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
+Copy commands are executed via `rsync` using archive mode (`-a`). Note that the behavior of `rsync`differs from `cp`, especially when using archive mode. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
 
 ```bash
 rsync -a "$SOURCE_REPO"/$source "$DESTINATION_REPO"/$destination
