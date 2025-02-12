@@ -1,0 +1,99 @@
+name: branch-manager
+author: Tufts University
+description: automatically copy content between repository branches
+branding:
+  icon: git-branch
+  color: blue
+
+inputs:
+  source-branch:
+    description: |
+      Branch to copy content from. Defaults to the triggering branch.
+    required: false
+    default: ${{ github.ref_name }}
+  destination-branch:
+    description: |
+      Branch to copy content to.
+    required: true
+  clear-destination:
+    description: |
+      Whether to delete all files from the destination branch before copying.
+      Must be set to "true" for deletion to occur. Other values ignored.
+    required: false
+    default: "false"
+  remove-items:
+    description: |
+      Newline-delimited list of glob patters to delete from the destination
+      branch before building. Ignored if destination branch set to be cleared.
+    required: false
+    default: ""
+  copy:
+    description: |
+      Newline-delimited list of `source|destination` arguments passed to `rsync`
+      and executed using archive mode. Source and destination paths are relative
+      to the repository root and will default to the repository root if not
+      provided or left empty. Commands executed in order provided.
+    required: false
+    default: ""
+  replace:
+    description: |
+      Newline-delimited list of `find|replace|glob` arguments used to perform
+      string replacement in the copied files. Commands are executed using `sed`
+      in order provided and applied only to files matching the glob pattern.
+      Omitting the glob pattern will apply the replacement to all files.
+    required: false
+    default: ""
+  commit-message:
+    description: |
+      Message to use when committing changes to the destination branch.
+      Defaults to the SHA of the triggering commit.
+    required: false
+    default: ${{ github.sha }}
+  use-bot:
+    description: |
+      Whether to use the github-actions[bot] account to commit and push changes.
+      Must be set to "true" for the bot to be used. Other values ignored.
+      (Author of the last commit on the source branch used by default.)
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - id: allow-execution
+      run: chmod +x ${{ github.action_path }}/*.sh
+      shell: bash
+    - id: checkout-source
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.source-branch }}
+        path: repo
+    - id: stage-files
+      run: ${{ github.action_path }}/stage-files.sh
+      shell: bash
+      env:
+        INPUTS_COPY: ${{ inputs.copy }}
+        REPO_PATH: repo
+        STAGING: staging
+    - id: replace-strings
+      run: ${{ github.action_path }}/replace-strings.sh
+      shell: bash
+      env:
+        INPUTS_REPLACE: ${{ inputs.replace }}
+        STAGING: staging
+    - id: configure-git
+      run: ${{ github.action_path }}/configure-git.sh
+      shell: bash
+      env:
+        REPO_PATH: repo
+        USE_BOT: ${{ inputs.use-bot }}
+    - id: push-changes
+      run: ${{ github.action_path }}/push-changes.sh
+      shell: bash
+      env:
+        BRANCH: ${{ inputs.destination-branch }}
+        CLEAR: ${{ inputs.clear-destination }}
+        MESSAGE: ${{ inputs.commit-message }}
+        REPO_PATH: repo
+        RM_LIST: ${{ inputs.remove-items }}
+        STAGING: staging
