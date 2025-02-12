@@ -1,6 +1,9 @@
-name: Branch Manager
+name: branch-manager
 author: Tufts University
 description: automatically copy content between repository branches
+branding:
+  icon: git-branch
+  color: blue
 
 inputs:
   source-branch:
