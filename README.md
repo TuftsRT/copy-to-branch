@@ -1,6 +1,6 @@
 # Branch Manager
 
-GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. It is intended for workflows that require synchronization of content between branches with minor modifications.
+GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. Intended for workflows that require synchronization of content between branches and allows for the modification of references and replacement of placeholders within files.
 
 This is a _composite_ action and must be run on a Linux-based runner like `ubuntu-latest` or similar.
 
@@ -83,16 +83,16 @@ jobs:
 The sample workflow above creates a new branch that allows the interactive execution of data analysis notebooks online via [Binder](https://mybinder.org/) by accomplishing the following.
 
 1. Any preexisting content on the `binder` branch is cleared.
-2. The file `environment.yml` from the `main` branch is copied into a new hidden directory named `.binder` on the `binder` branch.
-3. All Jupyter Notebook (`ipynb`) files from the `notebooks` directory on the `main` branch are copied into the root of the `binder` branch.
-4. The CSV file named `sample.csv` from the `data` directory within the `notebooks` directory on the `main` branch is copied to the `binder` branch and renamed to `data.csv` (note this for later).
-5. The `docs` directory within the `notebooks` directory on the `main` branch is copied to the `binder` branch along with all of its contents. (In reality, everything from `notebooks/docs` on the `main` branch is coped into a new directory named `docs` on the `binder` branch but this is essentially the same as recursively copying a whole directory.)
-6. Any references to `"data/sample.csv"` in the Jupyter Notebook (`ipynb`) files on the `binder` branch are replaced with `"data.csv"` to ensure the notebooks still execute without error given the changes to the CSV file.
-7. The placeholder `GH_ACTIONS_DATE` in all files on the `binder` branch is replaced with the current date (derived in a previous step).
+2. The file `environment.yml` from the `main` branch is copied into a new directory `.binder` on the `binder` branch.
+3. All `ipynb` files from the `notebooks` directory on the `main` branch are copied into the root of the `binder` branch.
+4. The CSV file named `sample.csv` from `notebooks/data` on the `main` branch is copied to the root of `binder` branch and renamed to `data.csv`.
+5. Everything from `notebooks/docs` on the `main` branch is copied into a new directory `docs` on the `binder` branch. (Essentially the same as recursively copying a whole directory.)
+6. Any references to `"data/sample.csv"` in the `ipynb` files on the `binder` branch are replaced with `"data.csv"`.
+7. The placeholder `"GH_ACTIONS_DATE"` in all files on the `binder` branch is replaced with the current date.
 
 ## Advanced Usage
 
-All the copy commands are executed via `rsync` in archive mode (`-a`) in the order provided. Note that the behavior of `rsync` differs from `cp` and might be confusing to those unfamiliar. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
+All copy commands are executed via `rsync` in archive mode (`-a`) in the order provided. Note that the behavior of `rsync` differs from that of `cp`, especially when copying directories. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
 
 ```bash
 rsync -a "$SOURCE_REPO"/$source "$DESTINATION_REPO"/$destination
