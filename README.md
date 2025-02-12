@@ -1,2 +1,99 @@
-# branch-manager
-WIP
+# Branch Manager
+
+GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. It is intended for workflows that require synchronization of content between branches with minor modifications.
+
+This is a _composite_ action and must be run on a Linux-based runner like `ubuntu-latest` or similar.
+
+Developed and maintained by Research Technology (RT), Tufts Technology Services (TTS), Tufts University.
+
+## Inputs
+
+- `source-branch`
+
+  - Branch to copy content from. Defaults to the triggering branch.
+  - Default: `${{ github.ref_name }}`
+
+- `destination-branch`
+
+  - Branch to copy content to.
+  - **Required.** _No default value._
+
+- `clear-destination`
+
+  - Whether to delete all files from the destination branch before copying. Must be set to `"true"` for deletion to occur. Other values ignored.
+  - Default: `"false"`
+
+- `remove-items`
+
+  - Newline-delimited list of glob patterns to delete from the destination branch before copying. Ignored if destination branch set to be cleared.
+  - Default: `""`
+
+- `copy`
+
+  - Newline-delimited list of `source|destination` arguments passed to `rsync` and executed using archive mode. Source and destination paths are relative to the repository root and will default to the repository root if not provided or left empty. Commands executed in order provided.
+  - Default: `""`
+
+- `replace`
+
+  - Newline-delimited list of `find|replace|glob` arguments used to perform string replacement in the copied files. Commands are executed using `sed` in order provided and applied only to files matching the glob pattern. Omitting the glob pattern will apply the replacement to all files.
+  - Default: `""`
+
+- `commit-message`
+
+  - Message to use when committing changes to the destination branch. Defaults to the SHA of the triggering commit.
+  - Default: `${{ github.sha }}`
+
+- `use-bot`
+
+  - Whether to use the `github-actions[bot]` account to commit and push changes. Must be set to `"true"` for the bot to be used. Other values ignored. (Author of the last commit on the source branch used by default.)
+  - Default: `"false"`
+
+## Usage Example
+
+```yml
+name: mirror-content
+on:
+  push:
+    branches:
+      - main
+jobs:
+  mirror-to-binder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: date
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+      - uses: tuftsrt/branch-manager@v1
+        with:
+          destination-branch: binder
+          clear-destination: "true"
+          copy: |
+            environment.yml|.binder/
+            notebooks/*.ipynb|
+            notebooks/data/sample.csv|data.csv
+            notebooks/docs/|docs
+          replace: |
+            data/sample.csv|data.csv|*.ipynb
+            GH_ACTIONS_DATE|${{ steps.date.outputs.date }}
+```
+
+The sample workflow above creates a new branch that allows the interactive execution of data analysis notebooks online via [Binder](https://mybinder.org/) by accomplishing the following.
+
+1. Any preexisting content on the `binder` branch is cleared.
+2. The file `environment.yml` from the `main` branch is copied into a new hidden directory named `.binder` on the `binder` branch.
+3. All Jupyter Notebook (`ipynb`) files from the `notebooks` directory on the `main` branch are copied into the root of the `binder` branch.
+4. The CSV file named `sample.csv` from the `data` directory within the `notebooks` directory on the `main` branch is copied to the `binder` branch and renamed to `data.csv` (note this for later).
+5. The `docs` directory within the `notebooks` directory on the `main` branch is copied to the `binder` branch along with all of its contents. (In reality, everything from `notebooks/docs` on the `main` branch is coped into a new directory named `docs` on the `binder` branch but this is essentially the same as recursively copying a whole directory.)
+6. Any references to `"data/sample.csv"` in the Jupyter Notebook (`ipynb`) files on the `binder` branch are replaced with `"data.csv"` to ensure the notebooks still execute without error given the changes to the CSV file.
+7. The placeholder `GH_ACTIONS_DATE` in all files on the `binder` branch is replaced with the current date (derived in a previous step).
+
+## Advanced Usage
+
+All the copy commands are executed via `rsync` in archive mode (`-a`) in the order provided. Note that the behavior of `rsync` differs from `cp` and might be confusing to those unfamiliar. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
+
+```bash
+rsync -a "$SOURCE_REPO"/$source "$DESTINATION_REPO"/$destination
+```
