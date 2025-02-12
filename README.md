@@ -1,6 +1,6 @@
 # Branch Manager
 
-GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. Intended for workflows that require synchronization of content between branches and allows for the modification of references and replacement of placeholders within files.
+GitHub action to automatically copy content between repository branches. This action can be used to extract desired files from a branch, rename the files if needed, perform string replacements within the selected files, and finally push the selected and potentially modified files to a different branch. Intended for workflows that require synchronization of content between branches and allows for the modification of select content within files.
 
 This is a _composite_ action and must be run on a Linux-based runner like `ubuntu-latest` or similar.
 
@@ -72,9 +72,9 @@ jobs:
           clear-destination: "true"
           copy: |
             environment.yml|.binder/
-            notebooks/*.ipynb|
-            notebooks/data/sample.csv|data.csv
-            notebooks/docs/|docs
+            *.ipynb|
+            data/sample.csv|data.csv
+            docs/|docs
           replace: |
             data/sample.csv|data.csv|*.ipynb
             GH_ACTIONS_DATE|${{ steps.date.outputs.date }}
@@ -82,17 +82,17 @@ jobs:
 
 The sample workflow above creates a new branch that allows the interactive execution of data analysis notebooks online via [Binder](https://mybinder.org/) by accomplishing the following.
 
-1. Any preexisting content on the `binder` branch is cleared.
-2. The file `environment.yml` from the `main` branch is copied into a new directory `.binder` on the `binder` branch.
-3. All `ipynb` files from the `notebooks` directory on the `main` branch are copied into the root of the `binder` branch.
-4. The CSV file named `sample.csv` from `notebooks/data` on the `main` branch is copied to the root of `binder` branch and renamed to `data.csv`.
-5. Everything from `notebooks/docs` on the `main` branch is copied into a new directory `docs` on the `binder` branch. (Essentially the same as recursively copying a whole directory.)
-6. Any references to `"data/sample.csv"` in the `ipynb` files on the `binder` branch are replaced with `"data.csv"`.
-7. The placeholder `"GH_ACTIONS_DATE"` in all files on the `binder` branch is replaced with the current date.
+1. any preexisting content on the `binder` branch is cleared
+2. `environment.yml` from the `main` branch is copied into a new directory `.binder` on the `binder` branch
+3. all `ipynb` files from the root `main` branch are copied into the root of the `binder` branch
+4. `sample.csv` from the `data` directory on the `main` branch is copied to the root of the `binder` branch and renamed to `data.csv`
+5. everything from `docs` on the `main` branch is copied into a new directory `docs` on the `binder` branch (essentially the same as recursively copying the whole `docs` directory)
+6. references to `"data/sample.csv"` in the `ipynb` files on the `binder` branch are replaced with `"data.csv"`
+7. placeholder `"GH_ACTIONS_DATE"` in all files on the `binder` branch is replaced with the current date
 
 ## Advanced Usage
 
-All copy commands are executed via `rsync` in archive mode (`-a`) in the order provided. Note that the behavior of `rsync` differs from that of `cp`, especially when copying directories. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
+Copy commands are executed via `rsync` using archive mode (`-a`). Note that the behavior of `rsync`differs from that of`cp` and these differences are exaggerated when using archive mode. Please refer to [`man rsync`](https://download.samba.org/pub/rsync/rsync) for examples and instructions on how to ensure files copy over as expected. Note that each `source|destination` input is processed as follows.
 
 ```bash
 rsync -a "$SOURCE_REPO"/$source "$DESTINATION_REPO"/$destination
