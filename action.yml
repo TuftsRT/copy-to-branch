@@ -64,7 +64,7 @@ runs:
       run: chmod +x ${{ github.action_path }}/*.sh
       shell: bash
     - id: checkout-source
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         ref: ${{ inputs.source-branch }}
         path: repo
